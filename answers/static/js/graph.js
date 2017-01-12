@@ -16,8 +16,8 @@ var linkRequest = sparqlServer + sparqlPrefixes + sparqlSelectLinks;
 
 //var graph;
 
-//var BogBasicMapLink = "http://cftest.intersect.org.au/geoserver/wms?layers=geonode%3Asa2_2016_aust_epsg4326&width=1131&bbox=96.8169413940001%2C-43.740509603%2C167.998034996%2C-9.14217597699997&service=WMS&format=image%2Fjpeg&srs=EPSG%3A4326&request=GetMap&height=550";
-var BogBasicMapLink = "geonode-sa2_2016_aust_epsg4326.jpg";
+var BogBasicMapLink = "http://cftest.intersect.org.au/geoserver/wms?layers=geonode%3Asa2_2016_aust_epsg4326&width=1131&bbox=96.8169413940001%2C-43.740509603%2C167.998034996%2C-9.14217597699997&service=WMS&format=image%2Fjpeg&srs=EPSG%3A4326&request=GetMap&height=550";
+//var BogBasicMapLink = "geonode-sa2_2016_aust_epsg4326.jpg";
 
 var width = window.innerWidth,
     height = window.innerHeight;
