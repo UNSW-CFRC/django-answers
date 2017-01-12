@@ -1,2 +1,3 @@
 include README.md
 recursive-include answers/templates *
+recursive-include answers/static *

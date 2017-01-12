@@ -16,6 +16,10 @@ Install.
     sudo -H pip install --upgrade ../django-answers
     sudo service apache2 restart
 
+If you modify static files (css, js, images):
+
+    sudo python manage.py collectstatic
+
 See your graph at url:
 
     http://cfdev.intersect.org.au/answers
