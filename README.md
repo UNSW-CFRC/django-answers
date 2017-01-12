@@ -13,7 +13,7 @@ Configure settings and URLs.
 Install.
 
     cd ~geonode/geonode
-    sudo -H pip install --upgrade ../answers
+    sudo -H pip install --upgrade ../django-answers
     sudo service apache2 restart
 
 See your graph at url:
