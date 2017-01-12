@@ -5,6 +5,7 @@
 Clone this repository.
 
 Configure settings and URLs.
+
     cd cd ~geonode/geonode/geonode
     vi local_settings_gaz.py: add answers to INSTALLED_APPS
     vi urls.py: add code to import answers.urls
