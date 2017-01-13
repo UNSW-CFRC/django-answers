@@ -6,6 +6,9 @@ var sparqlPrefixes = "PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2
 
 var sparqlSelectNodes = "SELECT%20%3Fid%20%3Flabel%0D%0AWHERE%20%7B%0D%0A%20%20%20%20%3Fid%20a%20skos%3Aconcept%3B%0D%0A%20%20%20%20%20%20%20%20%20%20skos%3AprefLabel%20%3Flabel%20.%0D%0A%7D";
 
+// Optional label - not needed as I've manually added the missing label for ISO37120_Indicator
+//var sparqlSelectNodes = "SELECT%20%3Fid%20%3Flabel%0D%0AWHERE%20%7B%0D%0A%20%20%20%20%3Fid%20a%20skos%3Aconcept%0D%0A%20%20%20%20OPTIONAL%20%7B%3Fid%20skos%3AprefLabel%20%3Flabel%7D%0D%0A%7D";
+
 var sparqlSelectLinks = "SELECT%20%3Fsource%20%3Ftarget%0D%0AWHERE%20%7B%0D%0A%20%20%20%20%3Ftarget%20skos%3Abroader%20%3Fsource.%0D%0A%7D%0D%0A";
 
 var nodeRequest = sparqlServer + sparqlPrefixes + sparqlSelectNodes;
@@ -43,17 +46,17 @@ var simulation = d3.forceSimulation()
 //d3.json("miserables.json", function (error, graph) {
 loadGraph(function (graph) {
 
-//    console.log("After loadGraph, graph:");
-//    console.log(graph);
+    //    console.log("After loadGraph, graph:");
+    //    console.log(graph);
 
     var link = svg.append("g")
         .attr("class", "links")
         .selectAll("line")
         .data(graph.links)
         .enter().append("line");
-//        .attr("stroke-width", function (d) {
-//            return Math.sqrt(d.value);
-//        });
+    //        .attr("stroke-width", function (d) {
+    //            return Math.sqrt(d.value);
+    //        });
 
     var node = svg.append("g")
         .attr("class", "nodes")
@@ -73,8 +76,11 @@ loadGraph(function (graph) {
             .on("drag", dragged)
             .on("end", dragended));
 
+//    console.warn("Hard-coding missing label on ISO37120_Indicator");
+//    var missingLabel = "Urban quality of life indicators";
     var text = node.append("text")
         .text(function (d) {
+//            return (d.label) ? d.label.value : missingLabel;
             return d.label.value;
         })
         .attr("class", "nodetext");
@@ -131,16 +137,16 @@ function loadGraph(callback) {
                 nodes[i].id = nodes[i].id.value;
             }
 
-            console.log("Spoofing missing head node - need to fix nodeQuery");
-            missingHeadNode = {
-                id: "http://cfdev.intersect.org.au/def/voc/iso37120/ISO37120_Indicator",
-                label: {
-                    type: "literal",
-                    value: "ISO 37120 Indicator",
-                    "xml:lang": "en"
-                }
-            };
-            nodes.push(missingHeadNode);
+            //            console.log("Spoofing missing head node - need to fix nodeQuery");
+            //            missingHeadNode = {
+            //                id: "http://cfdev.intersect.org.au/def/voc/iso37120/ISO37120_Indicator",
+            //                label: {
+            //                    type: "literal",
+            //                    value: "ISO 37120 Indicator",
+            //                    "xml:lang": "en"
+            //                }
+            //            };
+            //            nodes.push(missingHeadNode);
 
             d3.json(linkRequest)
                 //            .header("Accept", "application/sparql-results+json")
