@@ -43,17 +43,17 @@ var simulation = d3.forceSimulation()
 //d3.json("miserables.json", function (error, graph) {
 loadGraph(function (graph) {
 
-    console.log("After loadGraph, graph:");
-    console.log(graph);
+//    console.log("After loadGraph, graph:");
+//    console.log(graph);
 
     var link = svg.append("g")
         .attr("class", "links")
         .selectAll("line")
         .data(graph.links)
-        .enter().append("line")
-        .attr("stroke-width", function (d) {
-            return Math.sqrt(d.value);
-        });
+        .enter().append("line");
+//        .attr("stroke-width", function (d) {
+//            return Math.sqrt(d.value);
+//        });
 
     var node = svg.append("g")
         .attr("class", "nodes")
@@ -64,10 +64,10 @@ loadGraph(function (graph) {
 
     var circle = node.append("circle")
         .attr("r", 40)
-//        .attr("fill", "#88dd88")
-//        .attr("fill", function (d) {
-//            return color(d.group);
-//        })
+        //        .attr("fill", "#88dd88")
+        //        .attr("fill", function (d) {
+        //            return color(d.group);
+        //        })
         .call(d3.drag()
             .on("start", dragstarted)
             .on("drag", dragged)
@@ -121,23 +121,45 @@ loadGraph(function (graph) {
 
 function loadGraph(callback) {
     d3.json(nodeRequest)
-//        .header("Accept", "application/sparql-results+json")
+        //        .header("Accept", "application/sparql-results+json")
         .get(function (nodeError, nodeGraph) {
-        if (nodeError) throw nodeError;
-        if (!nodeGraph.head.vars.equals(["id", "label"])) throw "Unexpected vars in response to nodeRequest: " + nodeGraph.head.vars;
-        var nodes = nodeGraph.results.bindings;
-        
-        d3.json(linkRequest)
-//            .header("Accept", "application/sparql-results+json")
-            .get(function (linkError, linkGraph) {
-            if (linkError) throw linkError;
-            if (!linkGraph.head.vars.equals(["source", "target"])) throw "Unexpected vars in response to linkRequest: " + linkGraph.head.vars;
-            var links = linkGraph.results.bindings;
-            
-            var graph = {nodes, links};
-            callback(graph);
+            if (nodeError) throw nodeError;
+            if (!nodeGraph.head.vars.equals(["id", "label"])) throw "Unexpected vars in response to nodeRequest: " + nodeGraph.head.vars;
+            var nodes = nodeGraph.results.bindings;
+
+            for (var i = 0; i < nodes.length; i++) {
+                nodes[i].id = nodes[i].id.value;
+            }
+
+            console.log("Spoofing missing head node - need to fix nodeQuery");
+            missingHeadNode = {
+                id: "http://cfdev.intersect.org.au/def/voc/iso37120/ISO37120_Indicator",
+                label: {
+                    type: "literal",
+                    value: "ISO 37120 Indicator",
+                    "xml:lang": "en"
+                }
+            };
+            nodes.push(missingHeadNode);
+
+            d3.json(linkRequest)
+                //            .header("Accept", "application/sparql-results+json")
+                .get(function (linkError, linkGraph) {
+                    if (linkError) throw linkError;
+                    if (!linkGraph.head.vars.equals(["source", "target"])) throw "Unexpected vars in response to linkRequest: " + linkGraph.head.vars;
+                    var links = linkGraph.results.bindings;
+
+                    for (var i = 0; i < links.length; i++) {
+                        links[i].source = links[i].source.value;
+                        links[i].target = links[i].target.value;
+                    }
+
+                    var graph = {
+                        nodes, links
+                    };
+                    callback(graph);
+                });
         });
-    });
 }
 
 function dragstarted(d) {
@@ -161,9 +183,8 @@ function dragended(d) {
     d.fy = null;
     if (d.x === dragFrom.x && d.y === dragFrom.y) {
         alert("Clicked!");
-        window.open(BogBasicMapLink, '_self'
-                  );
-//                  ,'resizable,location,menubar,toolbar,scrollbars,status');
+        window.open(BogBasicMapLink, '_self');
+        //                  ,'resizable,location,menubar,toolbar,scrollbars,status');
     }
 }
 
