@@ -63,10 +63,11 @@ loadGraph(function (graph) {
         .append("g");
 
     var circle = node.append("circle")
-        .attr("r", 5)
-        .attr("fill", function (d) {
-            return color(d.group);
-        })
+        .attr("r", 40)
+//        .attr("fill", "#88dd88")
+//        .attr("fill", function (d) {
+//            return color(d.group);
+//        })
         .call(d3.drag()
             .on("start", dragstarted)
             .on("drag", dragged)
