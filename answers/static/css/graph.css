@@ -17,6 +17,7 @@ svg {
     stroke-width: 1.5px;
     pointer-events: all;
     fill: hsl(150, 100%, 25%);
+    r: 18;
 }
 
 .nodes circle:hover {

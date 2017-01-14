@@ -36,11 +36,22 @@ var color = d3.scaleOrdinal(d3.schemeCategory20);
 
 var dragFrom = {};
 
+//var attractForce = d3.forceManyBody().strength(20).distanceMax(400).distanceMin(200);
+//var repelForce = d3.forceManyBody().strength(-100).distanceMax(200).distanceMin(0);
+var attractForce = d3.forceManyBody().strength(20);
+var repelForce = d3.forceManyBody().strength(-100);
+
+//var simulation = d3.forceSimulation(nodeData).alphaDecay(0.03).force("attractForce", attractForce).force("repelForce", repelForce);
+
+
 var simulation = d3.forceSimulation()
     .force("link", d3.forceLink().id(function (d) {
         return d.id;
     }))
-    .force("charge", d3.forceManyBody())
+    .alphaDecay(0.03)
+    .force("attractForce", attractForce)
+    .force("repelForce", repelForce)
+    //    .force("charge", d3.forceManyBody())
     .force("center", d3.forceCenter(width / 2, height / 2));
 
 //d3.json("miserables.json", function (error, graph) {
@@ -66,7 +77,7 @@ loadGraph(function (graph) {
         .append("g");
 
     var circle = node.append("circle")
-        .attr("r", 40)
+        //        .attr("r", 40)
         //        .attr("fill", "#88dd88")
         //        .attr("fill", function (d) {
         //            return color(d.group);
@@ -76,11 +87,11 @@ loadGraph(function (graph) {
             .on("drag", dragged)
             .on("end", dragended));
 
-//    console.warn("Hard-coding missing label on ISO37120_Indicator");
-//    var missingLabel = "Urban quality of life indicators";
+    //    console.warn("Hard-coding missing label on ISO37120_Indicator");
+    //    var missingLabel = "Urban quality of life indicators";
     var text = node.append("text")
         .text(function (d) {
-//            return (d.label) ? d.label.value : missingLabel;
+            //            return (d.label) ? d.label.value : missingLabel;
             return d.label.value;
         })
         .attr("class", "nodetext");
