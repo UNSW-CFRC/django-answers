@@ -23,14 +23,15 @@ var BogBasicMapLink = "http://cftest.intersect.org.au/geoserver/wms?layers=geono
 //var BogBasicMapLink = "geonode-sa2_2016_aust_epsg4326.jpg";
 
 var width = window.innerWidth,
-    height = window.innerHeight;
+    height = window.innerHeight,
+    nodeRadius = 18;
 
 var svg = d3.select("body")
     .append("svg")
     .attr("width", width)
-    .attr("height", height)
-    //    width = +svg.attr("width"),
-    //    height = +svg.attr("height");
+    .attr("height", height);
+//    width = +svg.attr("width"),
+//    height = +svg.attr("height");
 
 var color = d3.scaleOrdinal(d3.schemeCategory20);
 
@@ -38,8 +39,9 @@ var dragFrom = {};
 
 //var attractForce = d3.forceManyBody().strength(20).distanceMax(400).distanceMin(200);
 //var repelForce = d3.forceManyBody().strength(-100).distanceMax(200).distanceMin(0);
-var attractForce = d3.forceManyBody().strength(20);
-var repelForce = d3.forceManyBody().strength(-100);
+var attractForce = d3.forceManyBody().strength(2);
+//var repelForce = d3.forceManyBody().strength(-100);
+var repelForce = d3.forceManyBody().strength(-300).distanceMax(300);
 
 //var simulation = d3.forceSimulation(nodeData).alphaDecay(0.03).force("attractForce", attractForce).force("repelForce", repelForce);
 
@@ -52,6 +54,9 @@ var simulation = d3.forceSimulation()
     .force("attractForce", attractForce)
     .force("repelForce", repelForce)
     //    .force("charge", d3.forceManyBody())
+    .force("charge", function () {
+        return -100
+    })
     .force("center", d3.forceCenter(width / 2, height / 2));
 
 //d3.json("miserables.json", function (error, graph) {
@@ -69,19 +74,29 @@ loadGraph(function (graph) {
     //            return Math.sqrt(d.value);
     //        });
 
-    var node = svg.append("g")
+    //    var node = svg.append("g")
+    //        .attr("class", "nodes")
+    //        .selectAll("circle")
+    //        .data(graph.nodes)
+    //        .enter()
+    //        .append("g");
+
+    var circle = svg.append("g")
         .attr("class", "nodes")
         .selectAll("circle")
         .data(graph.nodes)
         .enter()
-        .append("g");
-
-    var circle = node.append("circle")
-        //        .attr("r", 40)
+        .append("circle")
+        .attr("r", nodeRadius)
+        .attr("id", function (d) {
+            return "node_" + d.id.replace(/\W/g, '_')
+        })
         //        .attr("fill", "#88dd88")
         //        .attr("fill", function (d) {
         //            return color(d.group);
         //        })
+        .on("mouseover", mapMouseOver)
+        .on("mouseout", mapMouseOut)
         .call(d3.drag()
             .on("start", dragstarted)
             .on("drag", dragged)
@@ -89,12 +104,19 @@ loadGraph(function (graph) {
 
     //    console.warn("Hard-coding missing label on ISO37120_Indicator");
     //    var missingLabel = "Urban quality of life indicators";
-    var text = node.append("text")
+    var text = svg.append("g")
+        .attr("class", "labels")
+        .selectAll("text")
+        .data(graph.nodes)
+        .enter().append("text")
         .text(function (d) {
             //            return (d.label) ? d.label.value : missingLabel;
             return d.label.value;
         })
-        .attr("class", "nodetext");
+        .attr("class", "nodetext")
+        .attr("id", function (d) {
+            return "lbl_" + d.id.replace(/\W/g, '_');
+        });
 
     simulation
         .nodes(graph.nodes)
@@ -102,6 +124,20 @@ loadGraph(function (graph) {
 
     simulation.force("link")
         .links(graph.links);
+
+    function mapMouseOver() {
+        d3.select("#" + this.id.replace(/^node_/, 'lbl_'))
+            .classed("selected", true);
+        d3.select(this)
+            .classed("selected", true);
+    }
+
+    function mapMouseOut() {
+        d3.select("#" + this.id.replace(/^node_/, 'lbl_'))
+            .classed("selected", false);
+        d3.select(this)
+            .classed("selected", false);
+    }
 
     function ticked() {
         link
@@ -120,10 +156,10 @@ loadGraph(function (graph) {
 
         circle
             .attr("cx", function (d) {
-                return d.x;
+                return d.x = Math.max(nodeRadius, Math.min(width - nodeRadius, d.x));
             })
             .attr("cy", function (d) {
-                return d.y;
+                return d.y = Math.max(nodeRadius, Math.min(height - nodeRadius, d.y));
             });
 
         text
