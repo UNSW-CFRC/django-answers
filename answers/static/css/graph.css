@@ -14,7 +14,8 @@ svg {
 
 .nodes circle {
     stroke: #fff;
-    stroke-width: 0.5px; /* 1.5px;*/
+    stroke-width: 0.5px;
+    /* 1.5px;*/
     pointer-events: all;
     fill: hsl(150, 100%, 25%);
     /*    r: 18;*/
@@ -36,7 +37,11 @@ svg {
     opacity: 0.25;
 }
 
-.selected {
+.nodes circle.highlight {
+    fill: hsl(48, 100%, 35%);
+}
+
+.highlight {
     r: 24px;
     font-size: 24px;
     opacity: 1;

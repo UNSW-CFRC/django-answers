@@ -11,9 +11,13 @@ var sparqlSelectNodes = "SELECT%20%3Fid%20%3Flabel%0D%0AWHERE%20%7B%0D%0A%20%20%
 
 var sparqlSelectLinks = "SELECT%20%3Fsource%20%3Ftarget%0D%0AWHERE%20%7B%0D%0A%20%20%20%20%3Ftarget%20skos%3Abroader%20%3Fsource.%0D%0A%7D%0D%0A";
 
+var sparqlSelectAncestors = "SELECT%20%3Fid%0D%0AWHERE%20%7B%20%3Fid%20a%20skos%3Aconcept%20.%0D%0A%20%20FILTER%20%28%21%20EXISTS%20%7B%0D%0A%20%20%20%20%20%20%3Fid%20skos%3Abroader%20%3Fo%7D%0D%0A%20%20%29%0D%0A%7D";
+
 var nodeRequest = sparqlServer + sparqlPrefixes + sparqlSelectNodes;
 
 var linkRequest = sparqlServer + sparqlPrefixes + sparqlSelectLinks;
+
+var ancestorRequest = sparqlServer + sparqlPrefixes + sparqlSelectAncestors;
 
 // END -------------------------------- SPARQL endpoint and query variables ------------------------------------- //
 
@@ -118,6 +122,17 @@ loadGraph(function (graph) {
             return "lbl_" + d.id.replace(/\W/g, '_');
         });
 
+    for (var i = 0; i < graph.ancestors.length; i++) {
+        highlight(graph.ancestors[i], true);
+        d3.select("#" + "node_" + graph.ancestors[i]).attr("gen", 0);
+    }
+    
+    for (i = 0; i < graph.links.length; i++) {
+        if (graph.ancestors.indexOf("node_" + graph.links[i].source.replace(/\W/g, '_')) >= 0) {
+            d3.select("#" + "node_" + graph.links[i].target.replace(/\W/g, '_')).attr("gen", 1);
+        }
+    }
+
     simulation
         .nodes(graph.nodes)
         .on("tick", ticked);
@@ -126,17 +141,11 @@ loadGraph(function (graph) {
         .links(graph.links);
 
     function mapMouseOver() {
-        d3.select("#" + this.id.replace(/^node_/, 'lbl_'))
-            .classed("selected", true);
-        d3.select(this)
-            .classed("selected", true);
+        highlight(this.id, true);
     }
 
     function mapMouseOut() {
-        d3.select("#" + this.id.replace(/^node_/, 'lbl_'))
-            .classed("selected", false);
-        d3.select(this)
-            .classed("selected", false);
+        highlight(this.id, false);
     }
 
     function ticked() {
@@ -174,7 +183,6 @@ loadGraph(function (graph) {
 
 function loadGraph(callback) {
     d3.json(nodeRequest)
-        //        .header("Accept", "application/sparql-results+json")
         .get(function (nodeError, nodeGraph) {
             if (nodeError) throw nodeError;
             if (!nodeGraph.head.vars.equals(["id", "label"])) throw "Unexpected vars in response to nodeRequest: " + nodeGraph.head.vars;
@@ -184,19 +192,7 @@ function loadGraph(callback) {
                 nodes[i].id = nodes[i].id.value;
             }
 
-            //            console.log("Spoofing missing head node - need to fix nodeQuery");
-            //            missingHeadNode = {
-            //                id: "http://cfdev.intersect.org.au/def/voc/iso37120/ISO37120_Indicator",
-            //                label: {
-            //                    type: "literal",
-            //                    value: "ISO 37120 Indicator",
-            //                    "xml:lang": "en"
-            //                }
-            //            };
-            //            nodes.push(missingHeadNode);
-
             d3.json(linkRequest)
-                //            .header("Accept", "application/sparql-results+json")
                 .get(function (linkError, linkGraph) {
                     if (linkError) throw linkError;
                     if (!linkGraph.head.vars.equals(["source", "target"])) throw "Unexpected vars in response to linkRequest: " + linkGraph.head.vars;
@@ -207,12 +203,29 @@ function loadGraph(callback) {
                         links[i].target = links[i].target.value;
                     }
 
-                    var graph = {
-                        nodes, links
-                    };
-                    callback(graph);
+                    d3.json(ancestorRequest)
+                        .get(function (ancestorError, ancestorGraph) {
+                            if (ancestorError) throw ancestorError;
+                            if (!ancestorGraph.head.vars.equals(["id"])) throw "Unexpected vars in response to ancestorRequest: " + ancestorGraph.head.vars;
+                            var ancestors = ancestorGraph.results.bindings;
+
+                            for (var i = 0; i < ancestors.length; i++) {
+                                ancestors[i] = "node_" + ancestors[i].id.value.replace(/\W/g, '_');
+                            }
+                            var graph = {
+                                nodes, links, ancestors
+                            };
+                            callback(graph);
+                        });
                 });
         });
+}
+
+function highlight(nodeId, state) {
+    d3.select("#" + nodeId)
+        .classed("highlight", state);
+    d3.select("#" + nodeId.replace(/^node_/, 'lbl_'))
+        .classed("highlight", state);
 }
 
 function dragstarted(d) {
