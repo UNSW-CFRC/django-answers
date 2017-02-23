@@ -1,25 +1,21 @@
 // BEGIN ------------------------------- SPARQL endpoint and query variables ------------------------------------- //
 
-var sparqlServer = "http://cfdev.intersect.org.au:8080/rdf4j-server/repositories/uquol?query=";
+//var sparqlServer = "http://cfdev.intersect.org.au:8080/rdf4j-server/repositories/uquol?query=";
+var eldaServer = "http://cfdev.intersect.org.au:8080/dna/";
 
-//var sparqlPrefixes = "PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%0D%0APREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%0D%0APREFIX%20uquol%3A%20%3Chttp%3A%2F%2Fcfdev.intersect.org.au%2Fdef%2Fvoc%2F%3E%0D%0APREFIX%20skos%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23%3E%0D%0A";
-var sparqlPrefixes = "PREFIX%20skos%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23%3E%0D%0A";
+//var sparqlPrefixes = "PREFIX%20skos%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23%3E%0D%0A";
 
-//var sparqlSelectNodes = "SELECT%20%3Fid%20%3Flabel%0D%0AWHERE%20%7B%0D%0A%20%20%20%20%3Fid%20a%20skos%3Aconcept%3B%0D%0A%20%20%20%20%20%20%20%20%20%20skos%3AprefLabel%20%3Flabel%20.%0D%0A%7D";
-var sparqlSelectNodes = "SELECT%20%3Fid%20%3Flabel%20%3Ftop%0D%0AWHERE%20%7B%0D%0A%20%20%20%20%3Fid%20a%20skos%3Aconcept%3B%0D%0A%20%20%20%20%20%20%20%20%20%20skos%3AprefLabel%20%3Flabel%20.%0D%0A%20%20%20%20OPTIONAL%20%7B%3Fid%20skos%3AtopConceptOf%20%3Fo%7D%0D%0A%20%20%20%20BIND%28%3Fo%20AS%20%3Ftop%29%0D%0A%7D";
+var eldaSelectNodes = "nodes";
 
-// Optional label - not needed as I've manually added the missing label for ISO37120_Indicator
-//var sparqlSelectNodes = "SELECT%20%3Fid%20%3Flabel%0D%0AWHERE%20%7B%0D%0A%20%20%20%20%3Fid%20a%20skos%3Aconcept%0D%0A%20%20%20%20OPTIONAL%20%7B%3Fid%20skos%3AprefLabel%20%3Flabel%7D%0D%0A%7D";
+var eldaSelectLinks = "links";
 
-var sparqlSelectLinks = "SELECT%20%3Fsource%20%3Ftarget%0D%0AWHERE%20%7B%0D%0A%20%20%20%20%3Ftarget%20skos%3Abroader%20%3Fsource.%0D%0A%7D%0D%0A";
+//var sparqlSelectAncestors = "SELECT%20%3Fid%0D%0AWHERE%20%7B%20%3Fid%20a%20skos%3Aconcept%20.%0D%0A%20%20FILTER%20%28%21%20EXISTS%20%7B%0D%0A%20%20%20%20%20%20%3Fid%20skos%3Abroader%20%3Fo%7D%0D%0A%20%20%29%0D%0A%7D";
 
-var sparqlSelectAncestors = "SELECT%20%3Fid%0D%0AWHERE%20%7B%20%3Fid%20a%20skos%3Aconcept%20.%0D%0A%20%20FILTER%20%28%21%20EXISTS%20%7B%0D%0A%20%20%20%20%20%20%3Fid%20skos%3Abroader%20%3Fo%7D%0D%0A%20%20%29%0D%0A%7D";
+var nodeRequest = eldaServer + eldaSelectNodes;
 
-var nodeRequest = sparqlServer + sparqlPrefixes + sparqlSelectNodes;
+var linkRequest = eldaServer + eldaSelectLinks;
 
-var linkRequest = sparqlServer + sparqlPrefixes + sparqlSelectLinks;
-
-var ancestorRequest = sparqlServer + sparqlPrefixes + sparqlSelectAncestors;
+//var ancestorRequest = sparqlServer + sparqlPrefixes + sparqlSelectAncestors;
 
 // END -------------------------------- SPARQL endpoint and query variables ------------------------------------- //
 
@@ -117,7 +113,7 @@ loadGraph(function (graph) {
     .enter().append("text")
     .text(function (d) {
       //            return (d.label) ? d.label.value : missingLabel;
-      return d.label.value;
+      return d.prefLabel;
     })
     .attr("class", "nodetext")
     .attr("id", function (d) {
@@ -130,7 +126,7 @@ loadGraph(function (graph) {
   //    }
 
   for (var i = 0; i < graph.nodes.length; i++) {
-    if (graph.nodes[i].top) {
+    if (graph.nodes[i].topConceptOf) {
       d3.select("#" + "node_" + graph.nodes[i].id.replace(/\W/g, '_')).gen = 0;
       highlight("node_" + graph.nodes[i].id.replace(/\W/g, '_'), true);
     }
@@ -140,6 +136,7 @@ loadGraph(function (graph) {
   //        if (graph.ancestors.indexOf("node_" + graph.links[i].source.replace(/\W/g, '_')) >= 0) {
   //            d3.select("#" + "node_" + graph.links[i].target.replace(/\W/g, '_')).attr("gen", 1);
   //        }
+  
   for (i = 0; i < graph.links.length; i++) {
     if (graph.nodes.indexOf("node_" + graph.links[i].source.replace(/\W/g, '_')) >= 0) {
       d3.select("#" + "node_" + graph.links[i].target.replace(/\W/g, '_')).gen = 1;
@@ -198,22 +195,22 @@ function loadGraph(callback) {
   d3.json(nodeRequest)
     .get(function (nodeError, nodeGraph) {
       if (nodeError) throw nodeError;
-      if (!nodeGraph.head.vars.equals(["id", "label", "top"])) throw "Unexpected vars in response to nodeRequest: " + nodeGraph.head.vars;
-      var nodes = nodeGraph.results.bindings;
+//      if (!nodeGraph.head.vars.equals(["id", "label", "top"])) throw "Unexpected vars in response to nodeRequest: " + nodeGraph.head.vars;
+      var nodes = nodeGraph.result.items;
 
       for (var i = 0; i < nodes.length; i++) {
-        nodes[i].id = nodes[i].id.value;
+        nodes[i].id = nodes[i]._about;
       }
 
       d3.json(linkRequest)
         .get(function (linkError, linkGraph) {
           if (linkError) throw linkError;
-          if (!linkGraph.head.vars.equals(["source", "target"])) throw "Unexpected vars in response to linkRequest: " + linkGraph.head.vars;
-          var links = linkGraph.results.bindings;
+//          if (!linkGraph.head.vars.equals(["source", "target"])) throw "Unexpected vars in response to linkRequest: " + linkGraph.head.vars;
+          var links = linkGraph.result.items;
 
           for (var i = 0; i < links.length; i++) {
-            links[i].source = links[i].source.value;
-            links[i].target = links[i].target.value;
+            links[i].source = links[i]._about;
+            links[i].target = links[i].broader;
           }
           var graph = {
             nodes, links
