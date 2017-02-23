@@ -2,9 +2,7 @@
 
 ## Quickstart for Geonode sites
 
-Install with ansible:
-
-    [django_answers_install repo on GitHub](https://github.com/UNSW-CFRC/django_answers_install)
+Install with ansible: [django_answers_install repo on GitHub](https://github.com/UNSW-CFRC/django_answers_install)
 
 If you modify static files (css, js, images):
 
