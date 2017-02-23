@@ -6,14 +6,14 @@ var eldaServer = "http://cfdev.intersect.org.au:8080/dna/";
 //var sparqlPrefixes = "PREFIX%20skos%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23%3E%0D%0A";
 
 var eldaSelectNodes = "nodes";
-
 var eldaSelectLinks = "links";
+var eldaSelectMap = "map?concept=";
 
 //var sparqlSelectAncestors = "SELECT%20%3Fid%0D%0AWHERE%20%7B%20%3Fid%20a%20skos%3Aconcept%20.%0D%0A%20%20FILTER%20%28%21%20EXISTS%20%7B%0D%0A%20%20%20%20%20%20%3Fid%20skos%3Abroader%20%3Fo%7D%0D%0A%20%20%29%0D%0A%7D";
 
 var nodeRequest = eldaServer + eldaSelectNodes;
-
 var linkRequest = eldaServer + eldaSelectLinks;
+var mapRequest = eldaServer + eldaSelectMap;
 
 //var ancestorRequest = sparqlServer + sparqlPrefixes + sparqlSelectAncestors;
 
@@ -21,7 +21,9 @@ var linkRequest = eldaServer + eldaSelectLinks;
 
 //var graph;
 
-var BogBasicMapLink = "http://cftest.intersect.org.au/geoserver/wms?layers=geonode%3Asa2_2016_aust_epsg4326&width=1131&bbox=96.8169413940001%2C-43.740509603%2C167.998034996%2C-9.14217597699997&service=WMS&format=image%2Fjpeg&srs=EPSG%3A4326&request=GetMap&height=550";
+var uquolNs = "http://cfdev.intersect.org.au/def/voc/iso37120/";
+
+//var BogBasicMapLink = "http://cftest.intersect.org.au/geoserver/wms?layers=geonode%3Asa2_2016_aust_epsg4326&width=1131&bbox=96.8169413940001%2C-43.740509603%2C167.998034996%2C-9.14217597699997&service=WMS&format=image%2Fjpeg&srs=EPSG%3A4326&request=GetMap&height=550";
 //var BogBasicMapLink = "geonode-sa2_2016_aust_epsg4326.jpg";
 
 var width = window.innerWidth,
@@ -136,7 +138,7 @@ loadGraph(function (graph) {
   //        if (graph.ancestors.indexOf("node_" + graph.links[i].source.replace(/\W/g, '_')) >= 0) {
   //            d3.select("#" + "node_" + graph.links[i].target.replace(/\W/g, '_')).attr("gen", 1);
   //        }
-  
+
   for (i = 0; i < graph.links.length; i++) {
     if (graph.nodes.indexOf("node_" + graph.links[i].source.replace(/\W/g, '_')) >= 0) {
       d3.select("#" + "node_" + graph.links[i].target.replace(/\W/g, '_')).gen = 1;
@@ -195,7 +197,7 @@ function loadGraph(callback) {
   d3.json(nodeRequest)
     .get(function (nodeError, nodeGraph) {
       if (nodeError) throw nodeError;
-//      if (!nodeGraph.head.vars.equals(["id", "label", "top"])) throw "Unexpected vars in response to nodeRequest: " + nodeGraph.head.vars;
+      //      if (!nodeGraph.head.vars.equals(["id", "label", "top"])) throw "Unexpected vars in response to nodeRequest: " + nodeGraph.head.vars;
       var nodes = nodeGraph.result.items;
 
       for (var i = 0; i < nodes.length; i++) {
@@ -205,7 +207,7 @@ function loadGraph(callback) {
       d3.json(linkRequest)
         .get(function (linkError, linkGraph) {
           if (linkError) throw linkError;
-//          if (!linkGraph.head.vars.equals(["source", "target"])) throw "Unexpected vars in response to linkRequest: " + linkGraph.head.vars;
+          //          if (!linkGraph.head.vars.equals(["source", "target"])) throw "Unexpected vars in response to linkRequest: " + linkGraph.head.vars;
           var links = linkGraph.result.items;
 
           for (var i = 0; i < links.length; i++) {
@@ -261,10 +263,48 @@ function dragended(d) {
   d.fx = null;
   d.fy = null;
   if (d.x === dragFrom.x && d.y === dragFrom.y) {
-    alert("Clicked!");
-    window.open(BogBasicMapLink, '_self');
+//    alert("Clicked!");
+    map(d);
     //                  ,'resizable,location,menubar,toolbar,scrollbars,status');
   }
+}
+
+function map(node) {
+//  d3.json(mapRequest + node._about.replace(uquolNs,""))
+  d3.json(mapRequest + node.prefLabel)
+    .get(function (mapError, mapGraph) {
+      if (mapError) throw mapError;
+      var map = mapGraph.result.items[0];
+
+      var mapUrl = map.wxsServer +
+        "/wms?SERVICE=WMS&REQUEST=GetMap&LAYERS=" + map.layer +
+        "&STYLES=" + map.structure.component[0].prefStyle +
+        "&BBOX=" + bbox(map.extent) +
+        "&SRS=EPSG%3A4326&FORMAT=image%2Fpng&WIDTH=" + width +
+        "&HEIGHT=" + height;
+
+      window.open(mapUrl, '_self');
+    })
+}
+
+function bbox(extent) {
+  var polygon = extent.replace(/POLYGON\(\(([^\)]*)\)\)/, '$1')
+    .replace(/\s/, "")
+    .split(",");
+  if (polygon.length % 2 != 0) {
+    throw "Error in dataset extent string: odd number of values";
+  }
+
+  var bbox = [180, 90, -180, -90];
+  
+  for (var i = 0; i < polygon.length; i += 2) {
+    bbox[0] = Math.min(bbox[0], polygon[i]);
+    bbox[1] = Math.min(bbox[1], polygon[i + 1]);
+    bbox[2] = Math.max(bbox[2], polygon[i]);
+    bbox[3] = Math.max(bbox[3], polygon[i + 1]);
+  }
+  
+  return bbox.toString();
 }
 
 // BEGIN --------------------------------------- Compare arrays --------------------------------------- //
