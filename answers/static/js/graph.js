@@ -8,12 +8,14 @@ var eldaServer = "http://cfdev.intersect.org.au:8080/dna/";
 var eldaSelectNodes = "nodes";
 var eldaSelectLinks = "links";
 var eldaSelectMap = "map?concept=";
+var eldaSelectImages = "images?&concept=";
 
 //var sparqlSelectAncestors = "SELECT%20%3Fid%0D%0AWHERE%20%7B%20%3Fid%20a%20skos%3Aconcept%20.%0D%0A%20%20FILTER%20%28%21%20EXISTS%20%7B%0D%0A%20%20%20%20%20%20%3Fid%20skos%3Abroader%20%3Fo%7D%0D%0A%20%20%29%0D%0A%7D";
 
 var nodeRequest = eldaServer + eldaSelectNodes;
 var linkRequest = eldaServer + eldaSelectLinks;
 var mapRequest = eldaServer + eldaSelectMap;
+var imageRequest = eldaServer + eldaSelectImages;
 
 //var ancestorRequest = sparqlServer + sparqlPrefixes + sparqlSelectAncestors;
 
@@ -105,6 +107,20 @@ loadGraph(function (graph) {
       .on("start", dragstarted)
       .on("drag", dragged)
       .on("end", dragended));
+
+  // Append images
+  var images = nodeEnter.append("svg:image")
+    .attr("xlink:href", function (d) {
+      return d.img;
+    })
+    .attr("x", function (d) {
+      return -nodeRadius/2;
+    })
+    .attr("y", function (d) {
+      return -nodeRadius/2;
+    })
+    .attr("height", nodeRadius)
+    .attr("width", nodeRadius);
 
   //    console.warn("Hard-coding missing label on ISO37120_Indicator");
   //    var missingLabel = "Urban quality of life indicators";
