@@ -280,7 +280,7 @@ function map(node) {
         "&STYLES=" + map.structure.component[0].prefStyle +
         "&BBOX=" + bbox(map.extent) +
         "&SRS=EPSG%3A4326&FORMAT=image%2Fpng&WIDTH=" + width +
-        "&HEIGHT=" + height;
+        "&HEIGHT=" + height + "&TRANSPARENT=True";
 
       window.open(mapUrl, '_self');
     })
