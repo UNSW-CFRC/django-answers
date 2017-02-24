@@ -263,14 +263,13 @@ function dragended(d) {
   d.fx = null;
   d.fy = null;
   if (d.x === dragFrom.x && d.y === dragFrom.y) {
-//    alert("Clicked!");
+    //    alert("Clicked!");
     map(d);
     //                  ,'resizable,location,menubar,toolbar,scrollbars,status');
   }
 }
 
 function map(node) {
-//  d3.json(mapRequest + node._about.replace(uquolNs,""))
   d3.json(mapRequest + node.prefLabel)
     .get(function (mapError, mapGraph) {
       if (mapError) throw mapError;
@@ -296,14 +295,14 @@ function bbox(extent) {
   }
 
   var bbox = [180, 90, -180, -90];
-  
+
   for (var i = 0; i < polygon.length; i += 2) {
     bbox[0] = Math.min(bbox[0], polygon[i]);
     bbox[1] = Math.min(bbox[1], polygon[i + 1]);
     bbox[2] = Math.max(bbox[2], polygon[i]);
     bbox[3] = Math.max(bbox[3], polygon[i + 1]);
   }
-  
+
   return bbox.toString();
 }
 
