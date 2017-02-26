@@ -311,12 +311,30 @@ function bbox(extent) {
   }
 
   var bbox = [180, 90, -180, -90];
+  var mapWidth, mapHeight, mapCenX, mapCenY, mapAspect, WinAspect;
 
   for (var i = 0; i < polygon.length; i += 2) {
     bbox[0] = Math.min(bbox[0], polygon[i]);
     bbox[1] = Math.min(bbox[1], polygon[i + 1]);
     bbox[2] = Math.max(bbox[2], polygon[i]);
     bbox[3] = Math.max(bbox[3], polygon[i + 1]);
+  }
+
+  //  Calculate aspect ratios as width/height 
+  mapWidth = bbox[2] - bbox[0];
+  mapHeight = bbox[3] - bbox[1];
+  mapCenX = bbox[0] + mapWidth / 2;
+  mapCenY = bbox[1] + mapHeight / 2;
+  mapAspect = mapWidth / mapHeight;
+  winAspect = width / height;
+
+  // Pad bbox to fit client window
+  if (winAspect > mapAspect) { // Window is wider than map
+    bbox[0] = mapCenX - (mapWidth / 2) * (winAspect / mapAspect);
+    bbox[2] = mapCenX + (mapWidth / 2) * (winAspect / mapAspect);
+  } else {
+    bbox[1] = mapCenY - (mapHeight / 2) * (mapAspect / winAspect);
+    bbox[3] = mapCenY + (mapHeight / 2) * (mapAspect / winAspect);
   }
 
   return bbox.toString();
