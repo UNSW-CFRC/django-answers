@@ -8,12 +8,14 @@ var eldaServer = "http://cfdev.intersect.org.au:8080/dna/";
 var eldaSelectNodes = "nodes";
 var eldaSelectLinks = "links";
 var eldaSelectMap = "map?concept=";
+var eldaSelectImages = "images?&concept=";
 
 //var sparqlSelectAncestors = "SELECT%20%3Fid%0D%0AWHERE%20%7B%20%3Fid%20a%20skos%3Aconcept%20.%0D%0A%20%20FILTER%20%28%21%20EXISTS%20%7B%0D%0A%20%20%20%20%20%20%3Fid%20skos%3Abroader%20%3Fo%7D%0D%0A%20%20%29%0D%0A%7D";
 
 var nodeRequest = eldaServer + eldaSelectNodes;
 var linkRequest = eldaServer + eldaSelectLinks;
 var mapRequest = eldaServer + eldaSelectMap;
+var imageRequest = eldaServer + eldaSelectImages;
 
 //var ancestorRequest = sparqlServer + sparqlPrefixes + sparqlSelectAncestors;
 
@@ -105,6 +107,20 @@ loadGraph(function (graph) {
       .on("start", dragstarted)
       .on("drag", dragged)
       .on("end", dragended));
+
+  // Append images
+  var images = nodeEnter.append("svg:image")
+    .attr("xlink:href", function (d) {
+      return d.img;
+    })
+    .attr("x", function (d) {
+      return -nodeRadius/2;
+    })
+    .attr("y", function (d) {
+      return -nodeRadius/2;
+    })
+    .attr("height", nodeRadius)
+    .attr("width", nodeRadius);
 
   //    console.warn("Hard-coding missing label on ISO37120_Indicator");
   //    var missingLabel = "Urban quality of life indicators";
@@ -295,12 +311,30 @@ function bbox(extent) {
   }
 
   var bbox = [180, 90, -180, -90];
+  var mapWidth, mapHeight, mapCenX, mapCenY, mapAspect, WinAspect;
 
   for (var i = 0; i < polygon.length; i += 2) {
     bbox[0] = Math.min(bbox[0], polygon[i]);
     bbox[1] = Math.min(bbox[1], polygon[i + 1]);
     bbox[2] = Math.max(bbox[2], polygon[i]);
     bbox[3] = Math.max(bbox[3], polygon[i + 1]);
+  }
+
+  //  Calculate aspect ratios as width/height 
+  mapWidth = bbox[2] - bbox[0];
+  mapHeight = bbox[3] - bbox[1];
+  mapCenX = bbox[0] + mapWidth / 2;
+  mapCenY = bbox[1] + mapHeight / 2;
+  mapAspect = mapWidth / mapHeight;
+  winAspect = width / height;
+
+  // Pad bbox to fit client window
+  if (winAspect > mapAspect) { // Window is wider than map
+    bbox[0] = mapCenX - (mapWidth / 2) * (winAspect / mapAspect);
+    bbox[2] = mapCenX + (mapWidth / 2) * (winAspect / mapAspect);
+  } else {
+    bbox[1] = mapCenY - (mapHeight / 2) * (mapAspect / winAspect);
+    bbox[3] = mapCenY + (mapHeight / 2) * (mapAspect / winAspect);
   }
 
   return bbox.toString();
