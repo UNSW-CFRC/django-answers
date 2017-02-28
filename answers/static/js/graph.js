@@ -1,32 +1,17 @@
-// BEGIN ------------------------------- SPARQL endpoint and query variables ------------------------------------- //
-
-//var sparqlServer = "http://cfdev.intersect.org.au:8080/rdf4j-server/repositories/uquol?query=";
 var eldaServer = "http://cfdev.intersect.org.au:8080/dna/";
-
-//var sparqlPrefixes = "PREFIX%20skos%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23%3E%0D%0A";
-
 var eldaSelectNodes = "nodes";
 var eldaSelectLinks = "links";
 var eldaSelectMap = "map?concept=";
-var eldaSelectImages = "images?&concept=";
+//var eldaSelectImages = "images?&concept=";
 
 //var sparqlSelectAncestors = "SELECT%20%3Fid%0D%0AWHERE%20%7B%20%3Fid%20a%20skos%3Aconcept%20.%0D%0A%20%20FILTER%20%28%21%20EXISTS%20%7B%0D%0A%20%20%20%20%20%20%3Fid%20skos%3Abroader%20%3Fo%7D%0D%0A%20%20%29%0D%0A%7D";
 
 var nodeRequest = eldaServer + eldaSelectNodes;
 var linkRequest = eldaServer + eldaSelectLinks;
 var mapRequest = eldaServer + eldaSelectMap;
-var imageRequest = eldaServer + eldaSelectImages;
+//var imageRequest = eldaServer + eldaSelectImages;
 
 //var ancestorRequest = sparqlServer + sparqlPrefixes + sparqlSelectAncestors;
-
-// END -------------------------------- SPARQL endpoint and query variables ------------------------------------- //
-
-//var graph;
-
-var uquolNs = "http://cfdev.intersect.org.au/def/voc/iso37120/";
-
-//var BogBasicMapLink = "http://cftest.intersect.org.au/geoserver/wms?layers=geonode%3Asa2_2016_aust_epsg4326&width=1131&bbox=96.8169413940001%2C-43.740509603%2C167.998034996%2C-9.14217597699997&service=WMS&format=image%2Fjpeg&srs=EPSG%3A4326&request=GetMap&height=550";
-//var BogBasicMapLink = "geonode-sa2_2016_aust_epsg4326.jpg";
 
 var width = window.innerWidth,
   height = window.innerHeight,
@@ -36,8 +21,6 @@ var svg = d3.select("body")
   .append("svg")
   .attr("width", width)
   .attr("height", height);
-//    width = +svg.attr("width"),
-//    height = +svg.attr("height");
 
 var color = d3.scaleOrdinal(d3.schemeCategory20);
 
@@ -50,7 +33,6 @@ var attractForce = d3.forceManyBody().strength(2);
 var repelForce = d3.forceManyBody().strength(-300).distanceMax(300);
 
 //var simulation = d3.forceSimulation(nodeData).alphaDecay(0.03).force("attractForce", attractForce).force("repelForce", repelForce);
-
 
 var simulation = d3.forceSimulation()
   .force("link", d3.forceLink().id(function (d) {
@@ -65,12 +47,7 @@ var simulation = d3.forceSimulation()
   })
   .force("center", d3.forceCenter(width / 2, height / 2));
 
-//d3.json("miserables.json", function (error, graph) {
 loadGraph(function (graph) {
-
-  //    console.log("After loadGraph, graph:");
-  //    console.log(graph);
-
   var link = svg.append("g")
     .attr("class", "links")
     .selectAll("line")
@@ -79,13 +56,6 @@ loadGraph(function (graph) {
   //        .attr("stroke-width", function (d) {
   //            return Math.sqrt(d.value);
   //        });
-
-  //    var node = svg.append("g")
-  //        .attr("class", "nodes")
-  //        .selectAll("circle")
-  //        .data(graph.nodes)
-  //        .enter()
-  //        .append("g");
 
   var circle = svg.append("g")
     .attr("class", "nodes")
@@ -109,28 +79,25 @@ loadGraph(function (graph) {
       .on("end", dragended));
 
   // Append images
-  var images = nodeEnter.append("svg:image")
-    .attr("xlink:href", function (d) {
-      return d.img;
-    })
-    .attr("x", function (d) {
-      return -nodeRadius/2;
-    })
-    .attr("y", function (d) {
-      return -nodeRadius/2;
-    })
-    .attr("height", nodeRadius)
-    .attr("width", nodeRadius);
+  //  var images = nodeEnter.append("svg:image")
+  //    .attr("xlink:href", function (d) {
+  //      return d.img;
+  //    })
+  //    .attr("x", function (d) {
+  //      return -nodeRadius/2;
+  //    })
+  //    .attr("y", function (d) {
+  //      return -nodeRadius/2;
+  //    })
+  //    .attr("height", nodeRadius)
+  //    .attr("width", nodeRadius);
 
-  //    console.warn("Hard-coding missing label on ISO37120_Indicator");
-  //    var missingLabel = "Urban quality of life indicators";
   var text = svg.append("g")
     .attr("class", "labels")
     .selectAll("text")
     .data(graph.nodes)
     .enter().append("text")
     .text(function (d) {
-      //            return (d.label) ? d.label.value : missingLabel;
       return d.prefLabel;
     })
     .attr("class", "nodetext")
@@ -213,7 +180,6 @@ function loadGraph(callback) {
   d3.json(nodeRequest)
     .get(function (nodeError, nodeGraph) {
       if (nodeError) throw nodeError;
-      //      if (!nodeGraph.head.vars.equals(["id", "label", "top"])) throw "Unexpected vars in response to nodeRequest: " + nodeGraph.head.vars;
       var nodes = nodeGraph.result.items;
 
       for (var i = 0; i < nodes.length; i++) {
@@ -223,7 +189,6 @@ function loadGraph(callback) {
       d3.json(linkRequest)
         .get(function (linkError, linkGraph) {
           if (linkError) throw linkError;
-          //          if (!linkGraph.head.vars.equals(["source", "target"])) throw "Unexpected vars in response to linkRequest: " + linkGraph.head.vars;
           var links = linkGraph.result.items;
 
           for (var i = 0; i < links.length; i++) {
@@ -238,7 +203,6 @@ function loadGraph(callback) {
           //                    d3.json(ancestorRequest)
           //                        .get(function (ancestorError, ancestorGraph) {
           //                            if (ancestorError) throw ancestorError;
-          //                            if (!ancestorGraph.head.vars.equals(["id"])) throw "Unexpected vars in response to ancestorRequest: " + ancestorGraph.head.vars;
           //                            var ancestors = ancestorGraph.results.bindings;
           //
           //                            for (var i = 0; i < ancestors.length; i++) {
@@ -279,9 +243,7 @@ function dragended(d) {
   d.fx = null;
   d.fy = null;
   if (d.x === dragFrom.x && d.y === dragFrom.y) {
-    //    alert("Clicked!");
     map(d);
-    //                  ,'resizable,location,menubar,toolbar,scrollbars,status');
   }
 }
 
@@ -340,7 +302,7 @@ function bbox(extent) {
   return bbox.toString();
 }
 
-// BEGIN --------------------------------------- Compare arrays --------------------------------------- //
+// BEGIN ------------------ Compare arrays ------------------ //
 // as per http://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript
 
 // Warn if overriding existing method
@@ -374,4 +336,4 @@ Object.defineProperty(Array.prototype, "equals", {
   enumerable: false
 });
 
-// END --------------------------------------- Compare arrays --------------------------------------- //
+// END ------------------ Compare arrays ------------------ //
